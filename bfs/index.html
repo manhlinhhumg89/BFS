@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            border: 1px solid #d3d3d3;
+            background-color: aliceblue;
+        }
+    </style>
+</head>
+<body onload="startGame()">
+<script>
+    var Mypiece;
+    const CELL_SIZE =20;
+    const data= [{x:1,y:3},{x:2,y:3},{x:2,y:4},{x:2,y:5},{x:1,y:5},{x:0,y:5}]
+    function startGame() {
+        Init.Ve();
+        Mypiece = new Draw("red")
+    }
+   var Init = {
+       canvas: document.createElement("canvas"),
+       Ve: function () {
+           this.canvas.width=500;
+           this.canvas.height = 500;
+           this.context = this.canvas.getContext("2d");
+           document.body.insertBefore(this.canvas,document.body.childNodes[0])
+       }
+   }
+   function Draw(color) {
+       _ctx = Init.context;
+       _ctx.strokeStyle = color;
+       _ctx.lineWidth = CELL_SIZE;
+       _ctx.beginPath();
+       _ctx.moveTo(data[0].x * CELL_SIZE + CELL_SIZE/2, data[0].y*CELL_SIZE +CELL_SIZE/2);
+       for(var i=1;i<data.length; i++){
+           _ctx.lineTo(data[i].x *CELL_SIZE +CELL_SIZE/2,data[i].y*CELL_SIZE +CELL_SIZE/2);
+       }
+       _ctx.stroke();
+
+   }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas {
+            border: 1px solid #d3d3d3;
+            background-color: aliceblue;
+        }
+    </style>
+</head>
+<body>
+<canvas id="canvas" tabindex="0" style="margin:0px; border: 1px solid"></canvas>
+<script>
+    const CELL_SIZE = 20;
+    var _snake = new Snake("red");
+    var _preskey;
+    var _time;
+    //Game engine cua chuong trinh
+    function Game(canvas_id) {
+        var _snake = new Snake("red");
+        var _canvas = document.getElementById(canvas_id);
+        var _ctx = _canvas.getContext("2d");
+        var _food = {};
+        //Phuong thuc Init la phuong thuc chinh cua chuong trinh
+        this.Init = function () {
+            _canvas.width = 400;
+            _canvas.height = 400;
+            document.body.insertBefore(_canvas, document.body.childNodes[0]);
+            //Lấy giá trị của Key biến _presKey là biến toàn cục nên dùng trong tất cả các phương thức
+            _canvas.onkeydown = function (e) {
+                console.log(_preskey = e.keyCode);
+            };
+            StartGame();
+        }
+
+        function StartGame() {
+            //clearInterval(_time)
+            _snake.Init(); // Khởi tạo lớp Snake
+            Create_food(); // Vẽ Food đầu tiên
+            _time = setInterval(update, 1000 / 10)
+
+        }
+        // Định nghĩa hàm update trong phương thức StartGame()
+        function update() {
+            var eat = _snake.update(_food);
+            console.log("gia tri eat:", eat)
+            _snake.handleKey(_preskey);
+            if (eat == 1) {
+                Create_food();
+            }
+            if (eat == 2) {
+                End_Game();
+            }
+            Printf();
+        }
+
+        function Printf() {
+            _ctx.beginPath();
+            _ctx.clearRect(0, 0, _canvas.width, _canvas.height);
+            _ctx.fill();
+            _ctx.lineWidth = CELL_SIZE/2;
+            _ctx.lineCap = "round";
+            _ctx.lineJoin = "round";
+            _snake.draw(_ctx);
+            //Ve food
+            _ctx.fillStyle = "green";
+            _ctx.beginPath();
+            _ctx.arc((_food.x * CELL_SIZE) + CELL_SIZE / 2, (_food.y * CELL_SIZE) + CELL_SIZE / 2, CELL_SIZE / 4, 0, 2 * Math.PI);
+            _ctx.fill();
+        }
+
+        function Create_food() {
+            var x = Math.floor(Math.random() * CELL_SIZE);
+            var y = Math.floor(Math.random() * CELL_SIZE);
+            _food = {x: x, y: y}
+
+        }
+
+        function End_Game() {
+            _ctx.save();// Luu lai trang thai cua game
+            _ctx.restore();
+
+        }
+    }
+    // Định nghĩa cho lớp Snake
+    function Snake(color) {
+        var LEFT = 0, UP = 1, RIGHT = 2;
+        DOWN = 3;
+        this.direction;
+        this.data;
+        //Khởi tạo snake ban đầu chỉ có 3 phần tử với tọa độ đầu là (3,0)
+        this.Init = function () {
+            var x = 3, y = 0;
+            this.data = [
+                {x: x, y: y},
+                {x: x - 1, y: y},
+                {x: x - 2, y: y}
+
+            ];
+            this.direction = DOWN // mặc định đi xuống phía dưới
+        };
+        //Lấy giá trị của Key khi nhấn phím arrow
+        this.handleKey = function (key) {
+            if (key >= 37 && key <= 40) {
+                var newDir = key - 37;
+                if (Math.abs(this.direction - newDir) != 2) // Không cho di chuyển theo chiều ngược lại
+                    this.direction = newDir;
+            }
+        };
+        // Phương thức vẽ snake
+        this.draw = function (ctx) {
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(this.data[0].x * CELL_SIZE + CELL_SIZE / 2, this.data[0].y * CELL_SIZE + CELL_SIZE / 2);
+            for (var i = 1; i < this.data.length; i++) {
+                ctx.lineTo(this.data[i].x * CELL_SIZE + CELL_SIZE / 2, this.data[i].y * CELL_SIZE + CELL_SIZE / 2);
+            }
+            ctx.stroke();
+        };
+        // Phương thức update vị trí sau mỗi lần nhấn phím arrow
+        this.update = function (food) {
+            var x = this.data[0].x;
+            var y = this.data[0].y;
+            switch (this.direction) {
+                case LEFT:
+                    x--;
+                    break;
+                case UP:
+                    y--;
+                    break;
+                case RIGHT:
+                    x++;
+                    break;
+                case DOWN:
+                    y++;
+                    break;
+            }
+            //Neu nguoi choi an food
+            if (x == food.x && y == food.y) {
+                this.data.unshift(food);
+                return 1;
+            }
+            if (this.collide(x, y)) {
+                return 2;
+            }
+            this.data.unshift({x: x, y: y});
+            this.data.pop();
+        }
+        //Kiem tra va cham với tường hay chính thân của nó
+        this.collide = function (x,y) {
+            if(x < 0 || x > 400/20-1){
+                return 1;
+            }
+            if(y<0 || y>400/20-1){
+                return 1;
+            }
+            return this.contain(x,y)
+        }
+        //Phương thức kiểm tra xem nó có tự đâm vào thân không
+        this.contain = function (x, y) {
+            for (var i = 0; i < this.data.length; i++) {
+                if (x == this.data[i].x && y == this.data[i].y)
+                    return 1;
+            }
+            return 0;
+        }
+    }
+</script>
+<script>
+    window.onload = function () {
+        new Game("canvas").Init();
+    }
+</script>
+</body>
+</html>
